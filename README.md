@@ -1,6 +1,6 @@
 # 🇮🇩 NusantaraScript
 
-**Indonesian Language Scripting for Minecraft Servers (Phase 2)**
+**Indonesian Language Scripting for Minecraft Servers**
 
 NusantaraScript is a revolutionary Minecraft plugin that allows server administrators to write custom scripts using **Indonesian language syntax**. Now with **conditional logic**, **variables**, and **custom commands**!
 
@@ -13,11 +13,11 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 - ⚡ **Dynamic Loading** - Reload scripts without restarting the server
 - 🔧 **Extensible** - Easy to add new commands and events
 
-### Phase 2 Features ⭐ NEW!
-- 🔀 **Conditional Logic** - `jika` (if) statements for complex logic
-- 💾 **Variable System** - Store global and player-specific data
-- ⚙️ **Custom Commands** - Create server commands dynamically
-- 🎨 **Advanced Actions** - Heal, feed, give items, and more!
+### Recently Added Features  NEW!
+-  **Conditional Logic** - `jika` (if) statements for complex logic
+-  **Variable System** - Store global and player-specific data
+-  **Custom Commands** - Create server commands dynamically
+-  **Advanced Actions** - Heal, feed, give items, and more!
 
 ## 🚀 Installation
 
@@ -48,7 +48,7 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 | `pulihkan pemain` | Heal player to full health | `pulihkan pemain` |
 | `beri makan pemain` | Feed player to full | `beri makan pemain` |
 
-### Conditional Logic (Phase 2) ⭐
+### Conditional Logic
 
 | Indonesian Condition | Effect | Example |
 |---------------------|--------|---------|
@@ -59,7 +59,7 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 | `jika pemain sedang terbang` | Check if flying | `jika pemain sedang terbang` |
 | `jika pemain sedang menyelinap` | Check if sneaking | `jika pemain sedang menyelinap` |
 
-### Variable Operations (Phase 2) ⭐
+### Variable Operations
 
 | Indonesian Command | Effect | Example |
 |-------------------|--------|---------|
@@ -68,7 +68,7 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 | `kurangi NUMBER dari variabel {name}` | Subtract from variable | `kurangi 100 dari variabel {coins}` |
 | `hapus variabel {name}` | Delete variable | `hapus variabel {temp}` |
 
-### Custom Commands (Phase 2) ⭐
+### Custom Commands
 
 ```
 perintah /commandname:
@@ -81,8 +81,8 @@ perintah /commandname:
 
 - `%player%` - Player name
 - `%block%` - Block type
-- `{variableName}` - Variable value ⭐ NEW!
-- `{variableName.%player%}` - Player-specific variable ⭐ NEW!
+- `{variableName}` - Variable value  NEW!
+- `{variableName.%player%}` - Player-specific variable  NEW!
 - `&` - Color codes (e.g., `&a` for green)
 
 ## 📝 Example Scripts
@@ -191,7 +191,7 @@ saat pemain masuk:              ← Level 0 (event trigger)
 
 ## 🛠️ Technical Details
 
-- **Java Version:** 17
+- **Java Version:** 21
 - **Minecraft Version:** 1.21.4 (API 1.16+)
 - **Dependencies:** None
 - **Parser:** Custom lexer/parser with indentation-aware tokenization
