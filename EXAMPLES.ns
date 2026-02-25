@@ -1,0 +1,183 @@
+# ==========================================
+# NusantaraScript - Complete Phase 2 Examples
+# ==========================================
+# File ini berisi contoh lengkap semua fitur Phase 2
+# Hapus tanda # untuk mengaktifkan script yang ingin digunakan
+
+# ==========================================
+# CONTOH 1: System Kunjungan dengan Variabel
+# ==========================================
+# Mencatat berapa kali pemain login
+# saat pemain masuk:
+#     tambah 1 ke variabel {kunjungan.%player%}
+#     kirim "&a━━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+#     kirim "&e  Selamat datang, &b%player%&e!" ke pemain
+#     kirim "&7  Kunjungan ke-&a{kunjungan.%player%}" ke pemain
+#     kirim "&a━━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+
+# ==========================================
+# CONTOH 2: Deteksi Diamond Ore dengan Kondisi
+# ==========================================
+# Memberitahu server jika ada yang menemukan diamond
+# saat blok dihancurkan:
+#     jika blok adalah "DIAMOND_ORE":
+#         broadcast "&b✦ &e%player% &bmenemukan diamond!"
+#         tambah 1 ke variabel {diamond.%player%}
+#         kirim "&aTotal diamond yang kamu temukan: &e{diamond.%player%}" ke pemain
+#     jika blok adalah "EMERALD_ORE":
+#         broadcast "&a✦ &e%player% &amenemukan emerald!"
+#         tambah 1 ke variabel {emerald.%player%}
+
+# ==========================================
+# CONTOH 3: VIP System dengan Permission Check
+# ==========================================
+# Memberikan bonus kepada pemain VIP
+# saat pemain masuk:
+#     jika pemain punya izin "nusantara.vip":
+#         kirim "&6&l[VIP] &eSelamat datang pemain VIP!" ke pemain
+#         kirim "&7Kamu mendapat bonus login!" ke pemain
+#     jika pemain punya izin "nusantara.admin":
+#         kirim "&c&l[ADMIN] &eSelamat datang administrator!" ke pemain
+
+# saat blok dihancurkan:
+#     jika pemain punya izin "nusantara.vip":
+#         jika blok adalah "DIAMOND_ORE":
+#             kirim "&6[VIP Bonus] &aKamu mendapat double XP!" ke pemain
+
+# ==========================================
+# CONTOH 4: Custom Command - /sembuhkan
+# ==========================================
+# Command untuk menyembuhkan pemain
+# perintah /sembuhkan:
+#     izin: "nusantara.heal"
+#     aksi:
+#         pulihkan pemain
+#         kirim "&a━━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+#         kirim "&2  ♥ &aDarah telah dipulihkan!" ke pemain
+#         kirim "&2  ♨ &aLapar telah dipulihkan!" ke pemain
+#         kirim "&a━━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+
+# ==========================================
+# CONTOH 5: Custom Command - /feed
+# ==========================================
+# Command untuk memberi makan pemain
+# perintah /feed:
+#     izin: "nusantara.feed"
+#     aksi:
+#         beri makan pemain
+#         kirim "&e♨ Lapar telah dipulihkan!" ke pemain
+
+# ==========================================
+# CONTOH 6: Mining Statistics Tracker
+# ==========================================
+# Melacak statistik mining pemain
+# saat blok dihancurkan:
+#     jika blok adalah "STONE":
+#         tambah 1 ke variabel {stone.%player%}
+#     jika blok adalah "DIAMOND_ORE":
+#         tambah 1 ke variabel {diamond.%player%}
+#         kirim "&bDiamond yang ditambang: &e{diamond.%player%}" ke pemain
+#     jika blok adalah "GOLD_ORE":
+#         tambah 1 ke variabel {gold.%player%}
+#     jika blok adalah "IRON_ORE":
+#         tambah 1 ke variabel {iron.%player%}
+
+# ==========================================
+# CONTOH 7: Special Tool Detection
+# ==========================================
+# Memberikan pesan khusus saat menggunakan tool tertentu
+# saat blok dihancurkan:
+#     jika pemain memegang "DIAMOND_PICKAXE":
+#         jika blok adalah "DIAMOND_ORE":
+#             kirim "&bMenambang dengan Diamond Pickaxe!" ke pemain
+#     jika pemain memegang "NETHERITE_PICKAXE":
+#         kirim "&5[Pro Miner] &dMenambang dengan Netherite!" ke pemain
+
+# ==========================================
+# CONTOH 8: Welcome Back System
+# ==========================================
+# Menyambut pemain lama dengan statistik
+# saat pemain masuk:
+#     tambah 1 ke variabel {total_login.%player%}
+#     jika pemain adalah "Notch":
+#         broadcast "&e&lNotch telah bergabung ke server!"
+#     kirim "&7━━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+#     kirim "&eWelcome back, &a%player%&e!" ke pemain
+#     kirim "&7Login ke-&a{total_login.%player%} &7| Diamond: &b{diamond.%player%}" ke pemain
+#     kirim "&7━━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+
+# ==========================================
+# CONTOH 9: Anti-Grief dengan Cancel Event
+# ==========================================
+# Mencegah pemain non-VIP menghancurkan blok tertentu
+# saat blok dihancurkan:
+#     jika blok adalah "DIAMOND_BLOCK":
+#         jika pemain punya izin "build.special":
+#             kirim "&aKamu boleh menghancurkan Diamond Block" ke pemain
+#         batalkan event
+#         kirim "&cKamu tidak boleh menghancurkan blok ini!" ke pemain
+
+# ==========================================
+# CONTOH 10: Daily Login Reward
+# ==========================================
+# Memberikan reward login harian (menggunakan variabel)
+# saat pemain masuk:
+#     tambah 1 ke variabel {daily_points.%player%}
+#     kirim "&6Daily Points: &e{daily_points.%player%}" ke pemain
+#     jika pemain punya izin "nusantara.vip":
+#         tambah 1 ke variabel {daily_points.%player%}
+#         kirim "&6[VIP Bonus] &e+1 Extra Point!" ke pemain
+
+# ==========================================
+# CONTOH 11: Custom Command dengan Statistik
+# ==========================================
+# Command untuk melihat statistik mining
+# perintah /stats:
+#     aksi:
+#         kirim "&a━━━━━━━━ &e&lSTATISTIK &a━━━━━━━━" ke pemain
+#         kirim "&7Diamond: &b{diamond.%player%}" ke pemain
+#         kirim "&7Gold: &e{gold.%player%}" ke pemain
+#         kirim "&7Iron: &7{iron.%player%}" ke pemain
+#         kirim "&7Stone: &8{stone.%player%}" ke pemain
+#         kirim "&7Total Login: &a{total_login.%player%}" ke pemain
+#         kirim "&a━━━━━━━━━━━━━━━━━━━━━━━━━━━" ke pemain
+
+# ==========================================
+# CONTOH 12: Broadcast saat Quit
+# ==========================================
+# Memberitahu pemain lain saat ada yang keluar
+# saat pemain keluar:
+#     broadcast "&e%player% &7telah meninggalkan server"
+
+# ==========================================
+# TIPS PENGGUNAAN:
+# ==========================================
+# 1. Gunakan 4 spasi atau 1 tab untuk indentasi
+# 2. Variabel global: {namaVariabel}
+# 3. Variabel pemain: {namaVariabel.%player%}
+# 4. Gunakan & untuk color codes (&a = hijau, &c = merah, dll)
+# 5. Jika statement bisa nested (bertingkat)
+# 6. Custom command bisa punya izin (permission)
+# 7. Gunakan /nusantara reload untuk reload script
+
+# ==========================================
+# MATERIAL NAMES:
+# ==========================================
+# DIAMOND_ORE, DIAMOND_BLOCK, EMERALD_ORE, GOLD_ORE
+# IRON_ORE, COAL_ORE, STONE, COBBLESTONE, DIRT, GRASS_BLOCK
+# DIAMOND_PICKAXE, IRON_PICKAXE, GOLDEN_PICKAXE, NETHERITE_PICKAXE
+# Dan semua material Minecraft lainnya (gunakan uppercase)
+
+# ==========================================
+# COLOR CODES:
+# ==========================================
+# &0 = Hitam    &8 = Dark Gray
+# &1 = Navy     &9 = Biru
+# &2 = Hijau    &a = Hijau Terang
+# &3 = Teal     &b = Cyan
+# &4 = Merah    &c = Merah Terang
+# &5 = Ungu     &d = Pink
+# &6 = Emas     &e = Kuning
+# &7 = Abu-abu  &f = Putih
+# &l = Bold     &n = Underline
+# &o = Italic   &r = Reset
