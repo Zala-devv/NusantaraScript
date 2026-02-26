@@ -257,4 +257,36 @@ public abstract class Condition {
             return player != null && player.isSneaking();
         }
     }
+
+    /**
+     * Condition: jika alat benar
+     * Logic: Checks if the held tool matches the broken block type.
+     */
+    public static class ToolMatchCondition extends Condition {
+        public ToolMatchCondition(int lineNumber) {
+            super(lineNumber);
+        }
+
+        @Override
+        public boolean evaluate(Map<String, Object> context) {
+            Player player = getPlayer(context);
+            Block block = getBlock(context);
+            if (player == null || block == null) return false;
+
+            Material toolType = player.getInventory().getItemInMainHand().getType();
+            String blockName = block.getType().name();
+            String toolName = toolType.name();
+
+            // Logic for matching tools to blocks
+            if (blockName.contains("LOG") || blockName.contains("PLANKS") || blockName.contains("WOOD")) {
+                return toolName.contains("AXE") && !toolName.contains("PICKAXE");
+            } else if (blockName.contains("STONE") || blockName.contains("ORE") || blockName.contains("COAL") || blockName.contains("IRON")) {
+                return toolName.contains("PICKAXE");
+            } else if (blockName.contains("DIRT") || blockName.contains("SAND") || blockName.contains("GRAVEL")) {
+                return toolName.contains("SHOVEL");
+            }
+
+            return true; // Default to true for blocks that don't need specific tools
+        }
+    }
 }

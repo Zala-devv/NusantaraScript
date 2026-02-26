@@ -14,7 +14,7 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 - 🔧 **Extensible** - Easy to add new commands and events
 
 ### Recently Added Features  NEW!
--  **Conditional Logic** - `jika` (if) statements for complex logic
+-  **Conditional Logic** - `jika` (if,else,elseif) statements for complex logic
 -  **Variable System** - Store global and player-specific data
 -  **Custom Commands** - Create server commands dynamically
 -  **Advanced Actions** - Heal, feed, give items, and more!
@@ -101,6 +101,57 @@ The parser automatically strips the leading slash and ignores the argument token
 - `{variableName}` - Variable value  NEW!
 - `{variableName.%player%}` - Player-specific variable  NEW!
 - `&` - Color codes (e.g., `&a` for green)
+
+## 🧩 Conditional Logic Example
+
+Here is an example of using `jika` (if), `jika tidak` (else), and nested `jika` (else if) in NusantaraScript:
+
+```
+perintah /cek-koin:
+    jika {uang.%pemain%} kurang dari 100:
+        setel {uang.%pemain%} = 100
+        kirim "Koin kamu disetel ke 100!" ke pemain
+    jika tidak:
+        jika {uang.%pemain%} kurang dari 500:
+            kirim "Kamu hampir kaya!" ke pemain
+        jika tidak:
+            kirim "Kamu sudah cukup kaya!" ke pemain
+```
+
+- The first `jika` checks if the player's money is less than 100 and sets it to 100 if true.
+- The nested `jika` inside `jika tidak` acts as an `else if` (only checked if the first condition is false).
+- The final `jika tidak` acts as a true `else`.
+
+> **Tip:** For classic `else if` chains, use nested `jika` inside `jika tidak` blocks. This ensures only one branch runs, just like in most programming languages.
+
+
+## 🧪 Advanced Example: Stress Test System
+
+Menguji: Event, Tool Check, Variabel, dan Indentasi
+
+```
+saat blok dihancurkan:
+    jika alat benar:
+        # Jika alatnya benar (Pickaxe untuk Batu, dsb)
+        tambah 1 ke variabel {skor.%pemain%}
+        kirim "&a[NS] Alat benar! Skor kamu: {skor.%pemain%}" ke pemain
+        
+        # Cek apakah skor sudah mencapai target (Nested If)
+        jika {skor.%pemain%} lebih dari 10:
+            kirim "&6&l[NS] HEBAT! Kamu penambang ahli!" ke pemain
+            suara "entity.player.levelup" ke pemain
+            setel {skor.%pemain%} = 0
+    jika tidak:
+        # Jika alat salah (Potong kayu pakai tangan/batu pakai shovel)
+        kirim "&c[NS] Gunakan alat yang benar!" ke pemain
+        batalkan event
+        
+        # Bonus: Cek jika pemain sedang menyelinap (Sneaking)
+        jika pemain sedang menyelinap:
+            kirim "&7(Psst, kamu menghancurkan blok sambil jongkok!)" ke pemain
+```
+
+---
 
 ## 📝 Example Scripts
 

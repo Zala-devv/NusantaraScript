@@ -1,5 +1,6 @@
 package com.crow6980.nusantarascript.execution;
 
+
 import com.crow6980.nusantarascript.NusantaraScript;
 import com.crow6980.nusantarascript.condition.ConditionalBlock;
 import com.crow6980.nusantarascript.manager.VariableManager;
@@ -58,22 +59,14 @@ public class EnhancedScriptExecutor {
     }
 
     private void executeConditionalBlock(ConditionalBlock block, Map<String, Object> context) {
-        if (block.getCondition().evaluate(context)) {
-            for (Action a : block.getActions()) {
-                executeAction(a, context);
+        boolean result = block.getCondition().evaluate(context);
+        if (result) {
+            for (Action action : block.getActions()) {
+                executeAction(action, context);
             }
         } else {
-            for (Action a : block.getElseActions()) {
-                // If this is an ELSEIF special Action, run its ConditionalBlock
-                try {
-                    java.lang.reflect.Method m = a.getClass().getMethod("getConditionalBlock");
-                    ConditionalBlock elseifBlock = (ConditionalBlock) m.invoke(a);
-                    if (elseifBlock != null) {
-                        executeConditionalBlock(elseifBlock, context);
-                        continue;
-                    }
-                } catch (Exception ignore) {}
-                executeAction(a, context);
+            for (Action elseAction : block.getElseActions()) {
+                executeAction(elseAction, context);
             }
         }
     }
@@ -142,6 +135,12 @@ public class EnhancedScriptExecutor {
             case CUSTOM:
                 // CUSTOM is only used for internal parser logic (e.g., elseif/else blocks)
                 // No direct execution needed here
+                break;
+            
+            case NESTED_CONDITION:
+                if (action.getNestedBlock() != null) {
+                    executeConditionalBlock(action.getNestedBlock(), context);
+                }
                 break;
         }
     }

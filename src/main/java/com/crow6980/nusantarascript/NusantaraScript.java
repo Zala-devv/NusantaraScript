@@ -66,12 +66,14 @@ public class NusantaraScript extends JavaPlugin {
         if (eventRegistry != null) {
             eventRegistry.unregisterAll();
         }
-        
         // Unregister all custom commands
         if (customCommandRegistry != null) {
             customCommandRegistry.unregisterAll();
         }
-        
+        // Save all variables to disk for persistence
+        if (variableManager != null) {
+            variableManager.saveVariables();
+        }
         getLogger().info("NusantaraScript telah dinonaktifkan!");
         getLogger().info("Thank you for using NusantaraScript!");
     }
@@ -99,28 +101,70 @@ public class NusantaraScript extends JavaPlugin {
      */
     private void createSampleScript() {
         File sampleFile = new File(scriptsFolder, "contoh.ns");
-        
+        File stressTestFile = new File(scriptsFolder, "stress_test.ns");
+        File welcomeFile = new File(scriptsFolder, "welcome_counter.ns");
         if (!sampleFile.exists()) {
             try {
                 java.nio.file.Files.write(sampleFile.toPath(), java.util.Arrays.asList(
                     "# File Contoh NusantaraScript",
                     "# Hapus tanda # untuk mengaktifkan script",
                     "",
-                    "# Event: Ketika pemain bergabung ke server",
-                    "#saat pemain masuk:",
-                    "#    kirim \"Selamat datang di server!\" ke pemain",
-                    "#    kirim \"Halo %player%!\" ke pemain",
+                    "saat pemain masuk:",
+                    "    kirim \"Selamat datang di server!\" ke pemain",
+                    "    kirim \"Halo %player%!\" ke pemain",
                     "",
-                    "# Event: Ketika pemain menghancurkan blok",
-                    "#saat blok dihancurkan:",
-                    "#    kirim \"Kamu menghancurkan %block%!\" ke pemain",
-                    "",
-                    "# Lebih banyak fitur akan datang!",
+                    "saat blok dihancurkan:",
+                    "    jika blok adalah \"DIAMOND_ORE\":",
+                    "        broadcast \"&b✦ %player% menemukan diamond!\"",
+                    "        tambah 1 ke variabel {diamond.%player%}",
+                    "    jika pemain punya izin \"nusantara.vip\":",
+                    "        kirim \"&6[VIP] &aBonus XP diberikan!\" ke pemain",
                     ""
                 ));
                 getLogger().info("Created sample script: contoh.ns");
             } catch (Exception e) {
                 getLogger().warning("Failed to create sample script: " + e.getMessage());
+            }
+        }
+        if (!stressTestFile.exists()) {
+            try {
+                java.nio.file.Files.write(stressTestFile.toPath(), java.util.Arrays.asList(
+                    "# NusantaraScript - Stress Test System",
+                    "# Menguji: Event, Tool Check, Variabel, dan Indentasi",
+                    "",
+                    "saat blok dihancurkan:",
+                    "    jika alat benar:",
+                    "        tambah 1 ke variabel {skor.%pemain%}",
+                    "        kirim \"&a[NS] Alat benar! Skor kamu: {skor.%pemain%}\" ke pemain",
+                    "        jika {skor.%pemain%} lebih dari 10:",
+                    "            kirim \"&6&l[NS] HEBAT! Kamu penambang ahli!\" ke pemain",
+                    "            suara \"entity.player.levelup\" ke pemain",
+                    "            setel {skor.%pemain%} = 0",
+                    "    jika tidak:",
+                    "        kirim \"&c[NS] Gunakan alat yang benar!\" ke pemain",
+                    "        batalkan event",
+                    "        jika pemain sedang menyelinap:",
+                    "            kirim \"&7(Psst, kamu menghancurkan blok sambil jongkok!)\" ke pemain",
+                    ""
+                ));
+                getLogger().info("Created sample script: stress_test.ns");
+            } catch (Exception e) {
+                getLogger().warning("Failed to create stress test script: " + e.getMessage());
+            }
+        }
+        if (!welcomeFile.exists()) {
+            try {
+                java.nio.file.Files.write(welcomeFile.toPath(), java.util.Arrays.asList(
+                    "# Welcome Counter Example",
+                    "saat pemain masuk:",
+                    "    tambah 1 ke variabel {kunjungan.%player%}",
+                    "    kirim \"&aSelamat datang, %player%!\" ke pemain",
+                    "    kirim \"&7Ini kunjungan ke-&e{kunjungan.%player%}&7 kamu!\" ke pemain",
+                    ""
+                ));
+                getLogger().info("Created sample script: welcome_counter.ns");
+            } catch (Exception e) {
+                getLogger().warning("Failed to create welcome counter script: " + e.getMessage());
             }
         }
     }
@@ -157,13 +201,12 @@ public class NusantaraScript extends JavaPlugin {
     public void reloadScripts() {
         // Unregister all existing listeners
         eventRegistry.unregisterAll();
-        
         // Unregister all custom commands
         customCommandRegistry.unregisterAll();
-        
+        // Save variables before clearing (persistence)
+        variableManager.saveVariables();
         // Clear all variables
         variableManager.clearAll();
-        
         // Reload scripts
         int loaded = scriptManager.loadAllScripts();
         getLogger().info("Reloaded " + loaded + " script(s) successfully!");

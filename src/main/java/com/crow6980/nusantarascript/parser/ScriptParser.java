@@ -1,5 +1,6 @@
 package com.crow6980.nusantarascript.parser;
 
+
 import com.crow6980.nusantarascript.NusantaraScript;
 import com.crow6980.nusantarascript.command.CustomCommand;
 import com.crow6980.nusantarascript.condition.Condition;
@@ -120,7 +121,7 @@ public class ScriptParser {
             int spaces = 0;
             for (char c : line.toCharArray()) {
                 if (c == ' ') spaces++;
-                else if (c == '	') spaces += 4; // Tab = 4 spaces
+                else if (c == '\t') spaces += 4; // \t is the actual Tab character
                 else break;
             }
             
@@ -245,11 +246,7 @@ public class ScriptParser {
             } else if (lc.startsWith("jika ") && lc.endsWith(":")) { // elseif
                 ConditionalParseResult elseifResult = parseConditionalBlock(lines, i, filename);
                 if (elseifResult != null && elseifResult.block != null) {
-                    // Store as elseAction: wrap as a special Action type or handle in executor
-                    // For now, add a special Action that holds the ConditionalBlock
-                    block.addElseAction(new Action(Action.ActionType.CUSTOM, "ELSEIF", new String[]{}, next.lineNumber) {
-                        public ConditionalBlock getConditionalBlock() { return elseifResult.block; }
-                    });
+                    block.addElseAction(new Action(Action.ActionType.NESTED_CONDITION, elseifResult.block, next.lineNumber));
                     i = elseifResult.nextIndex;
                 }
                 break;
@@ -391,6 +388,9 @@ public class ScriptParser {
         }
         else if (conditionText.contains("pemain sedang menyelinap")) {
             return new Condition.PlayerSneakingCondition(line.lineNumber);
+        }
+        else if (conditionText.equals("alat benar")) {
+            return new Condition.ToolMatchCondition(line.lineNumber);
         }
         
         // variable comparisons added in Phase 3

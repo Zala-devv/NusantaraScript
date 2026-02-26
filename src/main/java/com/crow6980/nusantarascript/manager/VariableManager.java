@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.crow6980.nusantarascript.manager.VariablePersistence;
+
 /**
  * PHASE 2 - STEP 3: Variable Manager
  * 
@@ -26,18 +28,32 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VariableManager {
     
     private final NusantaraScript plugin;
-    
-    // Global variables accessible by all scripts
     private final Map<String, Object> globalVariables;
-    
-    // Player-specific variables: playerName -> (variableName -> value)
     private final Map<String, Map<String, Object>> playerVariables;
+    private final VariablePersistence persistence;
     
     public VariableManager(NusantaraScript plugin) {
         this.plugin = plugin;
         this.globalVariables = new ConcurrentHashMap<>();
         this.playerVariables = new ConcurrentHashMap<>();
+        this.persistence = new VariablePersistence(plugin);
+        loadVariables();
     }
+        /**
+         * Saves all variables to disk (variables.yml)
+         */
+        public void saveVariables() {
+            persistence.save(globalVariables, playerVariables);
+            plugin.getLogger().info("Variables saved to variables.yml");
+        }
+
+        /**
+         * Loads all variables from disk (variables.yml)
+         */
+        public void loadVariables() {
+            persistence.load(globalVariables, playerVariables);
+            plugin.getLogger().info("Variables loaded from variables.yml");
+        }
     
     /**
      * Sets a global variable
@@ -172,9 +188,10 @@ public class VariableManager {
      * Clears all variables (useful for reload)
      */
     public void clearAll() {
+        saveVariables();
         globalVariables.clear();
         playerVariables.clear();
-        plugin.getLogger().info("All variables cleared");
+        plugin.getLogger().info("All variables cleared and saved");
     }
     
     /**

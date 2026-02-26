@@ -1,5 +1,7 @@
 package com.crow6980.nusantarascript.script;
 
+import com.crow6980.nusantarascript.condition.ConditionalBlock;
+
 /**
  * Represents a single action to be executed when an event fires
  * 
@@ -26,7 +28,8 @@ public class Action {
         KICK_PLAYER,        // keluarkan pemain dengan alasan "reason"
         PLAY_SOUND,         // mainkan suara "SOUND" ke pemain
         GIVE_EFFECT,        // berikan efek "EFFECT" level NUMBER durasi NUMBER ke pemain
-        CUSTOM;             // special: used for internal parser logic (e.g., elseif/else blocks)
+        CUSTOM,             // special: used for internal parser logic (e.g., elseif/else blocks)
+        NESTED_CONDITION;   // for nested if/else blocks
         
         /**
          * Checks if this action type requires a player in context
@@ -42,18 +45,29 @@ public class Action {
     private final String parameter;
     private final String[] additionalParams;
     private final int lineNumber;
+    private final ConditionalBlock nestedBlock;
     
     public Action(ActionType actionType, String parameter, int lineNumber) {
         this.actionType = actionType;
         this.parameter = parameter;
         this.additionalParams = new String[0];
         this.lineNumber = lineNumber;
+        this.nestedBlock = null;
     }
     
     public Action(ActionType actionType, String parameter, String[] additionalParams, int lineNumber) {
         this.actionType = actionType;
         this.parameter = parameter;
         this.additionalParams = additionalParams != null ? additionalParams : new String[0];
+        this.lineNumber = lineNumber;
+        this.nestedBlock = null;
+    }
+    
+    public Action(ActionType type, ConditionalBlock block, int lineNumber) {
+        this.actionType = type;
+        this.parameter = null;
+        this.additionalParams = null;
+        this.nestedBlock = block;
         this.lineNumber = lineNumber;
     }
     
@@ -71,6 +85,10 @@ public class Action {
     
     public int getLineNumber() {
         return lineNumber;
+    }
+    
+    public ConditionalBlock getNestedBlock() {
+        return nestedBlock;
     }
     
     @Override
