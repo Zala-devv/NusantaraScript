@@ -4,6 +4,13 @@ import com.crow6980.nusantarascript.NusantaraScript;
 import com.crow6980.nusantarascript.execution.EnhancedScriptExecutor;
 import com.crow6980.nusantarascript.script.EventHandler;
 import com.crow6980.nusantarascript.script.Script;
+// Import the specific classes instead of the whole package if the star wildcard fails
+import com.crow6980.nusantarascript.listeners.PlayerJoinListener; 
+// Add others here as you create them:
+import com.crow6980.nusantarascript.listeners.PlayerQuitListener; // Ensure your specific listeners are in this package
+import com.crow6980.nusantarascript.listeners.BlockBreakListener;
+import com.crow6980.nusantarascript.listeners.PlayerChatListener;
+
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 
@@ -11,26 +18,19 @@ import java.util.*;
 
 /**
  * STEP 4: Dynamic Event Registry
- * 
- * This class manages dynamic registration of Bukkit event listeners.
- * It only registers listeners for events that are actually used in scripts.
- * 
- * Key Features:
- * - Lazy listener registration (only register what's needed)
- * - Multiple scripts can handle the same event
- * - Clean unregistration on reload
- * 
- * @author crow6980
+ * * Manages dynamic registration of Bukkit event listeners.
+ * It only registers listeners for events that are actually found in loaded .ns scripts.
+ * * @author crow6980
  */
 public class EventRegistry {
     
     private final NusantaraScript plugin;
     private final EnhancedScriptExecutor executor;
     
-    // Maps event types to their registered listeners
+    // Maps event types to their active Bukkit Listener objects
     private final Map<EventHandler.EventType, Listener> registeredListeners;
     
-    // Maps event types to all handlers that should run for that event
+    // Maps event types to the list of script handlers that need to run
     private final Map<EventHandler.EventType, List<EventHandler>> eventHandlers;
     
     public EventRegistry(NusantaraScript plugin, EnhancedScriptExecutor executor) {
@@ -41,19 +41,25 @@ public class EventRegistry {
     }
     
     /**
-     * Registers all events used by a script
-     * If an event type is already registered, just adds the handlers
-     * 
-     * @param script The script to register
+     * Clears all registered event handlers and removes listeners from Bukkit
+     */
+    public void clear() {
+        unregisterAll();
+    }
+    
+    /**
+     * Registers all events used by a script.
+     * If an event type is new, it injects a new Bukkit listener.
+     * * @param script The script object containing event handlers
      */
     public void registerScript(Script script) {
         for (EventHandler handler : script.getEventHandlers()) {
             EventHandler.EventType eventType = handler.getEventType();
             
-            // Add handler to the list
+            // Link the handler logic to the event type
             eventHandlers.computeIfAbsent(eventType, k -> new ArrayList<>()).add(handler);
             
-            // Register the Bukkit listener if not already registered
+            // Only register a new Bukkit Listener if we aren't already listening for this event
             if (!registeredListeners.containsKey(eventType)) {
                 registerBukkitListener(eventType);
             }
@@ -61,8 +67,7 @@ public class EventRegistry {
     }
     
     /**
-     * Registers a Bukkit event listener for a specific event type
-     * This is where we dynamically create listeners based on what scripts need
+     * Dynamically creates and registers specific Bukkit listeners
      */
     private void registerBukkitListener(EventHandler.EventType eventType) {
         Listener listener = null;
@@ -80,35 +85,31 @@ public class EventRegistry {
             case PLAYER_CHAT:
                 listener = new PlayerChatListener(this, executor);
                 break;
-            case PLAYER_DEATH:
-            case PLAYER_RESPAWN:
-            case PLAYER_DAMAGE:
-            case ENTITY_DAMAGE:
-                // These are handled by ScriptEventListener, registered globally in main plugin
+            // Note: PLAYER_DEATH, DAMAGE, etc., are usually handled by a 
+            // general ScriptEventListener for better performance on high-frequency events.
+            default:
                 break;
         }
         
         if (listener != null) {
             plugin.getServer().getPluginManager().registerEvents(listener, plugin);
             registeredListeners.put(eventType, listener);
-            plugin.getLogger().info("Registered listener for event: " + eventType);
+            plugin.getLogger().info("Successfully registered: " + eventType);
         }
     }
     
     /**
-     * Gets all handlers for a specific event type
-     * Called by the listeners when an event fires
+     * Returns the list of script handlers for a fired event
      */
     public List<EventHandler> getHandlers(EventHandler.EventType eventType) {
-        return eventHandlers.getOrDefault(eventType, new ArrayList<>());
+        return eventHandlers.getOrDefault(eventType, Collections.emptyList());
     }
     
     /**
-     * Unregisters all listeners and clears all handlers
-     * Used when reloading scripts
+     * Completely unregisters all listeners from the Bukkit event system.
+     * Vital for reloads to prevent "Ghost Events" from old script versions.
      */
     public void unregisterAll() {
-        // Unregister all Bukkit listeners
         for (Listener listener : registeredListeners.values()) {
             HandlerList.unregisterAll(listener);
         }
@@ -116,11 +117,11 @@ public class EventRegistry {
         registeredListeners.clear();
         eventHandlers.clear();
         
-        plugin.getLogger().info("Unregistered all script listeners");
+        plugin.getLogger().info("Unregistered all dynamic script listeners.");
     }
     
     /**
-     * Gets statistics about registered events
+     * Returns statistics for debugging (/ns info)
      */
     public Map<EventHandler.EventType, Integer> getEventStatistics() {
         Map<EventHandler.EventType, Integer> stats = new HashMap<>();

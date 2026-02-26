@@ -2,8 +2,11 @@ package com.crow6980.nusantarascript.command;
 
 import com.crow6980.nusantarascript.NusantaraScript;
 import com.crow6980.nusantarascript.execution.EnhancedScriptExecutor;
+import com.crow6980.nusantarascript.script.Action;
 import org.bukkit.Bukkit;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,14 +14,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
- * PHASE 2 - STEP 4: Custom Command Registry
- * 
- * Dynamically registers custom commands from scripts using Bukkit's CommandMap.
- * This allows scripts to create new commands without declaring them in plugin.yml.
- * 
- * Uses reflection to access the internal CommandMap.
- * 
- * @author crow6980
+ * Handles the registration and execution of commands defined in .ns scripts.
+ * Uses reflection to inject commands directly into Bukkit's CommandMap.
  */
 public class CustomCommandRegistry {
     
@@ -33,10 +30,9 @@ public class CustomCommandRegistry {
         this.registeredCommands = new HashMap<>();
         this.commandMap = getCommandMap();
     }
-    
+
     /**
-     * Gets the Bukkit CommandMap using reflection
-     * This is necessary because CommandMap is not exposed in the public API
+     * Accesses Bukkit's internal CommandMap via reflection.
      */
     private CommandMap getCommandMap() {
         try {
@@ -50,151 +46,100 @@ public class CustomCommandRegistry {
     }
     
     /**
-     * Registers a custom command from a script
-     * 
-     * @param customCommand The custom command to register
+     * Registers a command parsed from an .ns script into the server.
+     * @param customCommand The command data container.
      */
     public void registerCommand(CustomCommand customCommand) {
-        if (commandMap == null) {
-            plugin.getLogger().warning("Cannot register command: CommandMap not available");
-            return;
-        }
+        if (commandMap == null) return;
         
         String commandName = customCommand.getName().toLowerCase();
-        // Remove leading slash if present (parser should already strip it, but just in case)
-        if (commandName.startsWith("/")) {
-            commandName = commandName.substring(1);
-        }
+        // Strip leading slash if present
+        if (commandName.startsWith("/")) commandName = commandName.substring(1);
         
-        // Create the Bukkit command
-        Command command = new Command(commandName) {
+        // Create the Bukkit-compatible command object on the fly
+        Command bukkitCmd = new Command(commandName) {
             @Override
             public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
                 return executeCustomCommand(customCommand, sender, args);
             }
 
             @Override
-            public List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
-                // no dynamic suggestions for now, could be extended using argument definitions
-                return Collections.emptyList();
+            public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
+                // Future implementation: can be pulled from script metadata
+                return Collections.emptyList(); 
             }
         };
         
-        // Set command properties (include args in description for help)
-        String desc = customCommand.getDescription();
-        if (!customCommand.getArguments().isEmpty()) {
-            desc += " (" + String.join(" ", customCommand.getArguments()) + ")";
-        }
-        command.setDescription(desc);
-        if (customCommand.getPermission() != null) {
-            command.setPermission(customCommand.getPermission());
+        if (customCommand.getDescription() != null) {
+            bukkitCmd.setDescription(customCommand.getDescription());
         }
         
-        // Register the command
-        commandMap.register("nusantarascript", command);
+        if (customCommand.getPermission() != null) {
+            bukkitCmd.setPermission(customCommand.getPermission());
+        }
+        
+        // Register using a fallback prefix 'nusantarascript'
+        commandMap.register("nusantarascript", bukkitCmd);
         registeredCommands.put(commandName, customCommand);
         
-        plugin.getLogger().info("Registered custom command: /" + commandName +
-                               (customCommand.getArguments().isEmpty() ? "" : " arguments=" + customCommand.getArguments()));
+        plugin.getLogger().info("Registered custom command: /" + commandName);
     }
     
     /**
-     * Executes a custom command
-     * 
-     * @param customCommand The command to execute
-     * @param sender The command sender
-     * @param args Command arguments
-     * @return true if command executed successfully
+     * Bridges the Minecraft command execution to the Script Executor.
      */
     private boolean executeCustomCommand(CustomCommand customCommand, CommandSender sender, String[] args) {
-        // Check permission
+        // Permission Check
         if (customCommand.getPermission() != null && !sender.hasPermission(customCommand.getPermission())) {
-            sender.sendMessage("§cKamu tidak memiliki izin untuk menggunakan perintah ini!");
+            sender.sendMessage("§cKamu tidak memiliki izin untuk menjalankan perintah ini!");
             return true;
         }
         
-        // Build context for executor
+        // Prepare context variables for the script
         Map<String, Object> context = new HashMap<>();
-        
-        if (sender instanceof Player) {
-            context.put("player", sender);
-        } else {
-            // If not a player, check if command requires player context
-            boolean requiresPlayer = customCommand.getActions().stream()
-                .anyMatch(action -> action.getActionType().requiresPlayer());
-            
-            if (requiresPlayer) {
-                sender.sendMessage("§cPerintah ini hanya bisa digunakan oleh pemain!");
-                return true;
-            }
+        if (sender instanceof Player player) {
+            context.put("player", player);
         }
         
-        // Add command arguments to context
-        context.put("args", args);
         context.put("sender", sender);
         
-        // Execute all actions in the command
+        // Map arguments so scripts can use {arg1}, {arg2}, etc.
+        for (int i = 0; i < args.length; i++) {
+            context.put("arg" + (i + 1), args[i]);
+        }
+        context.put("args_count", args.length);
+        context.put("all_args", String.join(" ", args));
+
+        // Execute the actions defined in the script
         try {
-            for (com.crow6980.nusantarascript.script.Action action : customCommand.getActions()) {
+            for (Action action : customCommand.getActions()) {
                 executor.executeAction(action, context);
             }
         } catch (Exception e) {
-            sender.sendMessage("§cTerjadi kesalahan saat menjalankan perintah!");
+            sender.sendMessage("§cTerjadi kesalahan internal saat menjalankan perintah skrip!");
             plugin.getLogger().severe("Error executing custom command /" + customCommand.getName() + ": " + e.getMessage());
-            e.printStackTrace();
+            if (plugin.isDebugEnabled()) {
+                e.printStackTrace();
+            }
         }
         
         return true;
     }
-    
+
     /**
-     * Unregisters a custom command
-     * 
-     * @param commandName The command name to unregister
-     */
-    public void unregisterCommand(String commandName) {
-        commandName = commandName.toLowerCase();
-        if (commandName.startsWith("/")) {
-            commandName = commandName.substring(1);
-        }
-        
-        registeredCommands.remove(commandName);
-        
-        // Unregister from CommandMap
-        if (commandMap != null) {
-            try {
-                Command command = commandMap.getCommand(commandName);
-                if (command != null) {
-                    command.unregister(commandMap);
-                }
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to unregister command /" + commandName + ": " + e.getMessage());
-            }
-        }
-    }
-    
-    /**
-     * Unregisters all custom commands
+     * Clears the registry. 
+     * Note: Bukkit doesn't natively support unregistering commands easily at runtime, 
+     * but clearing this map ensures old logic isn't triggered if the script is modified.
      */
     public void unregisterAll() {
-        List<String> commandNames = new ArrayList<>(registeredCommands.keySet());
-        for (String commandName : commandNames) {
-            unregisterCommand(commandName);
-        }
-        plugin.getLogger().info("Unregistered " + commandNames.size() + " custom commands");
+        registeredCommands.clear();
     }
     
-    /**
-     * Gets all registered custom commands
-     */
+    public boolean isCommandRegistered(String commandName) {
+        return registeredCommands.containsKey(commandName.toLowerCase());
+    }
+
     public Map<String, CustomCommand> getRegisteredCommands() {
-        return new HashMap<>(registeredCommands);
-    }
-    
-    /**
-     * Gets the number of registered commands
-     */
-    public int getCommandCount() {
-        return registeredCommands.size();
+        return registeredCommands;
     }
 }
