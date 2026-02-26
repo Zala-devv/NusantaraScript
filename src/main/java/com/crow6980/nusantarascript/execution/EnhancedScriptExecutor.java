@@ -28,6 +28,15 @@ import java.util.regex.Pattern;
  * @author crow6980
  */
 public class EnhancedScriptExecutor {
+        /**
+         * Executes all handlers for a given event type and context
+         */
+        public void executeEvent(EventHandler.EventType eventType, Map<String, Object> context) {
+            // Find all registered handlers for this event type
+            for (EventHandler handler : plugin.getScriptManager().getHandlersByType(eventType)) {
+                execute(handler, context);
+            }
+        }
     
     private final NusantaraScript plugin;
     private final VariableManager variableManager;

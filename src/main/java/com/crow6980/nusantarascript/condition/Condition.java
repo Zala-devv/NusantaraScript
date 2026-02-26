@@ -18,6 +18,43 @@ import java.util.Map;
  * @author crow6980
  */
 public abstract class Condition {
+        /**
+         * Condition: jika darah pemain kurang dari NUMBER
+         */
+        public static class PlayerHealthCondition extends Condition {
+            private final double threshold;
+
+            public PlayerHealthCondition(double threshold, int lineNumber) {
+                super(lineNumber);
+                this.threshold = threshold;
+            }
+
+            @Override
+            public boolean evaluate(Map<String, Object> context) {
+                Player player = getPlayer(context);
+                // Spigot: player.getHealth() memberikan nilai darah saat ini (Max default 20.0)
+                return player != null && player.getHealth() < threshold;
+            }
+        }
+
+        /**
+         * Condition: jika dunia adalah "world_name"
+         */
+        public static class WorldCondition extends Condition {
+            private final String worldName;
+
+            public WorldCondition(String worldName, int lineNumber) {
+                super(lineNumber);
+                this.worldName = worldName;
+            }
+
+            @Override
+            public boolean evaluate(Map<String, Object> context) {
+                Player player = getPlayer(context);
+                if (player == null) return false;
+                return player.getWorld().getName().equalsIgnoreCase(worldName);
+            }
+        }
     
     protected final int lineNumber;
     

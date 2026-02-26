@@ -27,6 +27,16 @@ import java.util.Map;
  * @author crow6980
  */
 public class ScriptManager {
+        /**
+         * Gets all event handlers for a specific event type across all loaded scripts
+         */
+        public List<com.crow6980.nusantarascript.script.EventHandler> getHandlersByType(com.crow6980.nusantarascript.script.EventHandler.EventType eventType) {
+            List<com.crow6980.nusantarascript.script.EventHandler> result = new java.util.ArrayList<>();
+            for (Script script : loadedScripts.values()) {
+                result.addAll(script.getHandlersForEvent(eventType));
+            }
+            return result;
+        }
     
     private final NusantaraScript plugin;
     private final File scriptsFolder;

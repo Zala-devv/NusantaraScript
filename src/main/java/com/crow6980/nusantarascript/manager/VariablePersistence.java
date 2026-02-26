@@ -4,7 +4,7 @@ import com.crow6980.nusantarascript.NusantaraScript;
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+// import java.util.HashMap; // Unused, remove
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,7 +32,6 @@ public class VariablePersistence {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void load(Map<String, Object> global, Map<String, Map<String, Object>> player) {
         global.clear();
         player.clear();

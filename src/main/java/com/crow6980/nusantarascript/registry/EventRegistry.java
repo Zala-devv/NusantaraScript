@@ -71,17 +71,20 @@ public class EventRegistry {
             case PLAYER_JOIN:
                 listener = new PlayerJoinListener(this, executor);
                 break;
-                
             case PLAYER_QUIT:
                 listener = new PlayerQuitListener(this, executor);
                 break;
-                
             case BLOCK_BREAK:
                 listener = new BlockBreakListener(this, executor);
                 break;
-                
             case PLAYER_CHAT:
                 listener = new PlayerChatListener(this, executor);
+                break;
+            case PLAYER_DEATH:
+            case PLAYER_RESPAWN:
+            case PLAYER_DAMAGE:
+            case ENTITY_DAMAGE:
+                // These are handled by ScriptEventListener, registered globally in main plugin
                 break;
         }
         

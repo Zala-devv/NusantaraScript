@@ -18,6 +18,8 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 -  **Variable System** - Store global and player-specific data
 -  **Custom Commands** - Create server commands dynamically
 -  **Advanced Actions** - Heal, feed, give items, and more!
+-  **Death/Respawn/Damage Events** - Use `saat pemain mati`, `saat pemain hidup kembali`, `saat pemain terluka`, `saat entity terluka` in scripts
+-  **Variable Persistence** - Variables are saved to `variables.yml` and loaded automatically
 
 ## 🚀 Installation
 
@@ -37,6 +39,10 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 | `saat pemain keluar:` | PlayerQuitEvent | When a player leaves |
 | `saat blok dihancurkan:` | BlockBreakEvent | When a block is broken |
 | `saat pemain chat:` | AsyncChatEvent | When a player chats |
+| `saat pemain mati:` | PlayerDeathEvent | When a player dies |
+| `saat pemain hidup kembali:` | PlayerRespawnEvent | When a player respawns |
+| `saat pemain terluka:` | PlayerDamageEvent | When a player takes damage |
+| `saat entity terluka:` | EntityDamageEvent | When any entity takes damage |
 
 ### Basic Actions
 
@@ -246,12 +252,12 @@ saat pemain masuk:              ← Level 0 (event trigger)
 - [x] **Phase 2: Variable system (global & player)**
 - [x] **Phase 2: Custom commands**
 - [x] **Phase 2: Advanced actions (heal, feed, etc.)**
+- [x] **Death/Respawn/Damage Events**
+- [x] **Variable persistence (save to file/database)**
 
 ### Coming Soon 🚀
-- [ ] More event types (death, respawn, damage, etc.)
 - [ ] More conditions (health check, world check, etc.)
 - [ ] More actions (teleport, give items, effects, etc.)
-- [ ] Variable persistence (save to file/database)
 - [ ] Else statements
 - [ ] Math operations in variables
 - [ ] Functions/procedures

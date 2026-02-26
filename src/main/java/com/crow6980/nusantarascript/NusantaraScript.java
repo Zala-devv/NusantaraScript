@@ -47,6 +47,9 @@ public class NusantaraScript extends JavaPlugin {
         
         // Step 2: Initialize core managers
         initializeManagers();
+        // Register ScriptEventListener for new events
+        getServer().getPluginManager().registerEvents(
+            new com.crow6980.nusantarascript.registry.ScriptEventListener(scriptExecutor), this);
         
         // Step 3: Register commands
         registerCommands();

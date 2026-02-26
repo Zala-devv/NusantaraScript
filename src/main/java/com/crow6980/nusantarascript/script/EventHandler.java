@@ -21,8 +21,11 @@ public class EventHandler {
         PLAYER_JOIN,      // saat pemain masuk
         PLAYER_QUIT,      // saat pemain keluar
         BLOCK_BREAK,      // saat blok dihancurkan
-        PLAYER_CHAT       // saat pemain chat
-        // Easy to add more: PLAYER_DEATH, BLOCK_PLACE, etc.
+        PLAYER_CHAT,      // saat pemain chat
+        PLAYER_DEATH,     // saat pemain mati
+        PLAYER_RESPAWN,   // saat pemain hidup kembali
+        PLAYER_DAMAGE,    // saat pemain terluka
+        ENTITY_DAMAGE     // saat entity terluka
     }
     
     private final EventType eventType;
