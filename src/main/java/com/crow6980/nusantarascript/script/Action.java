@@ -4,36 +4,18 @@ import com.crow6980.nusantarascript.condition.ConditionalBlock;
 
 /**
  * Represents a single action to be executed when an event fires
- * 
- * @author crow6980
+ * * @author crow6980
  */
 public class Action {
     
-    /**
-     * Supported action types
-     * Maps Indonesian actions to Bukkit API calls
-     */
     public enum ActionType {
-        SEND_MESSAGE,       // kirim "text" ke pemain
-        BROADCAST,          // broadcast "text"
-        CANCEL_EVENT,       // batalkan event
-        HEAL_PLAYER,        // pulihkan pemain
-        FEED_PLAYER,        // beri makan pemain
-        SET_VARIABLE,       // atur variabel {name} menjadi "value" (juga mendukung syntax "setel {name} = value")
-        ADD_VARIABLE,       // tambah NUMBER ke variabel {name}
-        SUBTRACT_VARIABLE,  // kurangi NUMBER dari variabel {name}
-        DELETE_VARIABLE,    // hapus variabel {name}
-        GIVE_ITEM,          // berikan MATERIAL NUMBER ke pemain
-        TELEPORT,           // teleportasi pemain ke X Y Z
-        KICK_PLAYER,        // keluarkan pemain dengan alasan "reason"
-        PLAY_SOUND,         // mainkan suara "SOUND" ke pemain
-        GIVE_EFFECT,        // berikan efek "EFFECT" level NUMBER durasi NUMBER ke pemain
-        CUSTOM,             // special: used for internal parser logic (e.g., elseif/else blocks)
-        NESTED_CONDITION;   // for nested if/else blocks
+    SEND_MESSAGE, BROADCAST, CANCEL_EVENT, HEAL_PLAYER, 
+    FEED_PLAYER, SET_VARIABLE, ADD_VARIABLE, SUBTRACT_VARIABLE, 
+    DELETE_VARIABLE, GIVE_ITEM, KICK_PLAYER, TELEPORT, 
+    PLAY_SOUND, GIVE_EFFECT, NESTED_CONDITION, 
+    STOP; // Add this line
+
         
-        /**
-         * Checks if this action type requires a player in context
-         */
         public boolean requiresPlayer() {
             return this == SEND_MESSAGE || this == HEAL_PLAYER || this == FEED_PLAYER ||
                    this == GIVE_ITEM || this == TELEPORT || this == KICK_PLAYER ||
@@ -45,8 +27,14 @@ public class Action {
     private final String parameter;
     private final String[] additionalParams;
     private final int lineNumber;
-    private final ConditionalBlock nestedBlock;
-    
+    private final ConditionalBlock nestedBlock; // Used for all block-based logic
+
+    // Constructor for simple actions (e.g., batalkan event)
+    public Action(ActionType type, int lineNumber) {
+        this(type, (String) null, lineNumber);
+    }
+
+    // Constructor for actions with one parameter (e.g., broadcast "halo")
     public Action(ActionType actionType, String parameter, int lineNumber) {
         this.actionType = actionType;
         this.parameter = parameter;
@@ -55,6 +43,7 @@ public class Action {
         this.nestedBlock = null;
     }
     
+    // Constructor for actions with multiple parameters (e.g., beri_item)
     public Action(ActionType actionType, String parameter, String[] additionalParams, int lineNumber) {
         this.actionType = actionType;
         this.parameter = parameter;
@@ -63,11 +52,12 @@ public class Action {
         this.nestedBlock = null;
     }
     
+    // Constructor for nested conditions (if/else logic)
     public Action(ActionType type, ConditionalBlock block, int lineNumber) {
         this.actionType = type;
         this.parameter = null;
-        this.additionalParams = null;
-        this.nestedBlock = block;
+        this.additionalParams = new String[0];
+        this.nestedBlock = block; // This resolves the "block" variable from your parser
         this.lineNumber = lineNumber;
     }
     
@@ -93,6 +83,6 @@ public class Action {
     
     @Override
     public String toString() {
-        return "Action{" + actionType + ", param='" + parameter + "'}";
+        return "Action{" + actionType + ", param='" + parameter + "', line=" + lineNumber + ", nestedBlock=" + nestedBlock + "}";
     }
 }

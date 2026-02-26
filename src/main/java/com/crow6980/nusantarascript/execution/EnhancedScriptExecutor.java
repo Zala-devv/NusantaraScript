@@ -31,7 +31,17 @@ public class EnhancedScriptExecutor {
         this.plugin = plugin;
         this.variableManager = variableManager;
     }
-
+    public void execute(com.crow6980.nusantarascript.script.EventHandler handler, Map<String, Object> context) {
+        if (handler == null) return;
+        
+        for (Action action : handler.getActions()) {
+            // This handles Error #2 and #4
+            if (action.getActionType() == Action.ActionType.STOP) {
+                return; 
+            }
+            executeAction(action, context);
+        }
+    }
     /**
      * Entry point for Listeners to trigger script logic.
      */
@@ -60,8 +70,8 @@ public class EnhancedScriptExecutor {
 
         // 2. Loop through every script that wants to run for this event
         for (com.crow6980.nusantarascript.script.EventHandler handler : handlers) {
-            // 3. Use your existing executeHandler method to run the actions
-            executeHandler(handler, context);
+            // 3. Use your existing execute method to run the actions
+            execute(handler, context);
         }
     }
     public void executeAction(Action action, Map<String, Object> context) {
