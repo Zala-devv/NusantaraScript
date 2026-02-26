@@ -225,8 +225,8 @@ public class ScriptParser {
             i++;
         }
 
-        // else branch
-        if (i < lines.size()) {
+        // else/elseif branch
+        while (i < lines.size()) {
             IndentedLine next = lines.get(i);
             String lc = next.content.toLowerCase().trim();
             if (lc.equals("jika tidak:") || lc.equals("jika tidak")) {
@@ -242,6 +242,19 @@ public class ScriptParser {
                     }
                     i++;
                 }
+            } else if (lc.startsWith("jika ") && lc.endsWith(":")) { // elseif
+                ConditionalParseResult elseifResult = parseConditionalBlock(lines, i, filename);
+                if (elseifResult != null && elseifResult.block != null) {
+                    // Store as elseAction: wrap as a special Action type or handle in executor
+                    // For now, add a special Action that holds the ConditionalBlock
+                    block.addElseAction(new Action(Action.ActionType.CUSTOM, "ELSEIF", new String[]{}, next.lineNumber) {
+                        public ConditionalBlock getConditionalBlock() { return elseifResult.block; }
+                    });
+                    i = elseifResult.nextIndex;
+                }
+                break;
+            } else {
+                break;
             }
         }
 

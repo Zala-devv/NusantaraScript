@@ -25,7 +25,8 @@ public class Action {
         TELEPORT,           // teleportasi pemain ke X Y Z
         KICK_PLAYER,        // keluarkan pemain dengan alasan "reason"
         PLAY_SOUND,         // mainkan suara "SOUND" ke pemain
-        GIVE_EFFECT;        // berikan efek "EFFECT" level NUMBER durasi NUMBER ke pemain
+        GIVE_EFFECT,        // berikan efek "EFFECT" level NUMBER durasi NUMBER ke pemain
+        CUSTOM;             // special: used for internal parser logic (e.g., elseif/else blocks)
         
         /**
          * Checks if this action type requires a player in context

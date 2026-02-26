@@ -43,25 +43,38 @@ public class EnhancedScriptExecutor {
      * Executes all actions and conditional blocks in an event handler
      */
     public void execute(EventHandler handler, Map<String, Object> context) {
+        context.put("variableManager", variableManager);
         try {
-            // Execute direct actions
             for (Action action : handler.getActions()) {
                 executeAction(action, context);
             }
-            
-            // Execute conditional blocks (jika statements)
             for (ConditionalBlock block : handler.getConditionalBlocks()) {
-                // Evaluate the condition
-                if (block.getCondition().evaluate(context)) {
-                    // Execute actions inside the conditional block
-                    for (Action action : block.getActions()) {
-                        executeAction(action, context);
-                    }
-                }
+                executeConditionalBlock(block, context);
             }
         } catch (Exception e) {
             plugin.getLogger().severe("Error executing script: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void executeConditionalBlock(ConditionalBlock block, Map<String, Object> context) {
+        if (block.getCondition().evaluate(context)) {
+            for (Action a : block.getActions()) {
+                executeAction(a, context);
+            }
+        } else {
+            for (Action a : block.getElseActions()) {
+                // If this is an ELSEIF special Action, run its ConditionalBlock
+                try {
+                    java.lang.reflect.Method m = a.getClass().getMethod("getConditionalBlock");
+                    ConditionalBlock elseifBlock = (ConditionalBlock) m.invoke(a);
+                    if (elseifBlock != null) {
+                        executeConditionalBlock(elseifBlock, context);
+                        continue;
+                    }
+                } catch (Exception ignore) {}
+                executeAction(a, context);
+            }
         }
     }
     
@@ -124,6 +137,11 @@ public class EnhancedScriptExecutor {
                 
             case GIVE_EFFECT:
                 executeGiveEffect(action, context);
+                break;
+            
+            case CUSTOM:
+                // CUSTOM is only used for internal parser logic (e.g., elseif/else blocks)
+                // No direct execution needed here
                 break;
         }
     }
