@@ -32,16 +32,22 @@ public class VariablePersistence {
         }
     }
 
+    // Inside your load method in VariablePersistence.java
+
     public void load(Map<String, Object> global, Map<String, Map<String, Object>> player) {
-        global.clear();
-        player.clear();
-        Map<String, Object> loadedGlobal = (Map<String, Object>) config.getConfigurationSection("global").getValues(false);
-        if (loadedGlobal != null) global.putAll(loadedGlobal);
-        if (config.isConfigurationSection("player")) {
-            for (String pname : config.getConfigurationSection("player").getKeys(false)) {
-                Map<String, Object> vars = (Map<String, Object>) config.getConfigurationSection("player." + pname).getValues(false);
-                player.put(pname, new ConcurrentHashMap<>(vars));
+        if (config.contains("global")) {
+            Map<String, Object> loadedGlobal = config.getConfigurationSection("global").getValues(false);
+            global.clear();
+            global.putAll(loadedGlobal);
+        }
+        if (config.contains("player")) {
+            Map<String, Map<String, Object>> loadedPlayer = new ConcurrentHashMap<>();
+            for (String playerId : config.getConfigurationSection("player").getKeys(false)) {
+                Map<String, Object> vars = config.getConfigurationSection("player." + playerId).getValues(false);
+                loadedPlayer.put(playerId, vars);
             }
+            player.clear();
+            player.putAll(loadedPlayer);
         }
     }
 }
