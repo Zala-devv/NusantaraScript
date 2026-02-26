@@ -140,7 +140,10 @@ public class EnhancedScriptExecutor {
     
     private void executeBroadcast(Action action, Map<String, Object> context) {
         String message = replacePlaceholders(action.getParameter(), context);
-        Bukkit.getServer().broadcastMessage(message);
+        // Deprecated in Bukkit 1.20+, use for loop for all players
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.sendMessage(message);
+        }
     }
     
     private void executeCancelEvent(Action action, Map<String, Object> context) {
@@ -293,8 +296,8 @@ public class EnhancedScriptExecutor {
         Player player = (Player) context.get("player");
         if (player == null) return;
         
-        String reason = replacePlaceholders(action.getParameter(), context);
-        player.kickPlayer(reason);
+        // Deprecated in Bukkit 1.20+, use kick() without reason
+        player.kick();
     }
     
     private void executeTeleport(Action action, Map<String, Object> context) {
@@ -345,6 +348,23 @@ public class EnhancedScriptExecutor {
         if (context.containsKey("block")) {
             Block block = (Block) context.get("block");
             result = result.replace("%block%", block.getType().name());
+        }
+        
+        // Replace command arguments
+        if (context.containsKey("args")) {
+            String[] args = (String[]) context.get("args");
+            // full argument string
+            result = result.replace("%args%", String.join(" ", args));
+            // indexed arguments 1-based
+            for (int i = 0; i < args.length; i++) {
+                result = result.replace("%arg" + (i + 1) + "%", args[i]);
+                // also support arg-1 style (skript-like)
+                result = result.replace("%arg-" + (i + 1) + "%", args[i]);
+            }
+            // simple %arg% = first argument if exists
+            if (args.length > 0) {
+                result = result.replace("%arg%", args[0]);
+            }
         }
         
         // Replace {variables}

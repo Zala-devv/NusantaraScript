@@ -22,27 +22,42 @@ import java.util.List;
 public class CustomCommand {
     
     private final String name;
+    private final List<String> arguments; // argument definitions from declaration
     private final String permission;
     private final List<Action> actions;
     private final String description;
     private final int lineNumber;
     
+    /**
+     * Create a command with no arguments.
+     */
     public CustomCommand(String name, int lineNumber) {
-        this.name = name;
-        this.permission = null;
-        this.actions = new ArrayList<>();
-        this.description = "Custom command from NusantaraScript";
-        this.lineNumber = lineNumber;
+        this(name, new ArrayList<>(), null, "Custom command from NusantaraScript", lineNumber);
+    }
+
+    /**
+     * Create a command with explicit argument definitions.
+     */
+    public CustomCommand(String name, List<String> arguments, int lineNumber) {
+        this(name, arguments, null, "Custom command from NusantaraScript", lineNumber);
     }
     
     public CustomCommand(String name, String permission, String description, int lineNumber) {
+        this(name, new ArrayList<>(), permission, description, lineNumber);
+    }
+    
+    // internal constructor used by other constructors
+    // Made public so external callers (e.g. parser) can build commands with
+    // explicit argument lists, permissions, and descriptions.
+    public CustomCommand(String name, List<String> arguments, String permission, String description, int lineNumber) {
         this.name = name;
+        this.arguments = arguments != null ? arguments : new ArrayList<>();
         this.permission = permission;
         this.actions = new ArrayList<>();
         this.description = description != null ? description : "Custom command from NusantaraScript";
         this.lineNumber = lineNumber;
     }
-    
+
     public void addAction(Action action) {
         actions.add(action);
     }
@@ -57,6 +72,13 @@ public class CustomCommand {
     
     public List<Action> getActions() {
         return new ArrayList<>(actions);
+    }
+
+    /**
+     * Returns the list of argument definitions declared with the command.
+     */
+    public List<String> getArguments() {
+        return new ArrayList<>(arguments);
     }
     
     public String getDescription() {

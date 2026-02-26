@@ -36,14 +36,12 @@ import java.util.List;
 public class ScriptParser {
     
     private final NusantaraScript plugin;
-    private final ScriptLexer lexer;
     
     // Indentation constants
     private static final int INDENT_SIZE = 4; // 4 spaces per indent level
     
     public ScriptParser(NusantaraScript plugin) {
         this.plugin = plugin;
-        this.lexer = new ScriptLexer();
     }
     
     /**
@@ -165,12 +163,15 @@ public class ScriptParser {
             if (line.indentLevel == 1) {
                 if (isCondition(line.content)) {
                     // Parse conditional block
-                    ConditionalBlock condBlock = parseConditionalBlock(lines, i, filename);
-                    if (condBlock != null) {
-                        handler.addConditionalBlock(condBlock);
+                    ConditionalParseResult result = parseConditionalBlock(lines, i, filename);
+                    if (result != null) {
+                        if (result.block != null) {
+                            handler.addConditionalBlock(result.block);
+                        }
+                        i = result.nextIndex;
+                        continue;
                     }
-                    // Skip past conditional block
-                    i = findNextSameLevelLine(lines, i);
+                    i++;
                 } else {
                     // Parse direct action
                     Action action = parseAction(line, filename);
@@ -190,36 +191,61 @@ public class ScriptParser {
     /**
      * Parses a conditional block (jika statement)
      */
-    private ConditionalBlock parseConditionalBlock(List<IndentedLine> lines, int startIndex, String filename) {
+    /**
+     * Helper used by event handler and command parser.
+     * Returns both the parsed block and the index to continue from.
+     */
+    private static class ConditionalParseResult {
+        final ConditionalBlock block;
+        final int nextIndex;
+        ConditionalParseResult(ConditionalBlock block, int nextIndex) {
+            this.block = block;
+            this.nextIndex = nextIndex;
+        }
+    }
+
+    private ConditionalParseResult parseConditionalBlock(List<IndentedLine> lines, int startIndex, String filename) {
         IndentedLine conditionLine = lines.get(startIndex);
         Condition condition = parseCondition(conditionLine, filename);
-        
-        if (condition == null) return null;
-        
+        if (condition == null) {
+            return new ConditionalParseResult(null, startIndex + 1);
+        }
+
         ConditionalBlock block = new ConditionalBlock(condition, conditionLine.lineNumber);
-        
-        // Parse actions inside the conditional block (indentLevel = 2)
         int i = startIndex + 1;
         while (i < lines.size()) {
             IndentedLine line = lines.get(i);
-            
-            // Stop if we're back to level 1 or 0
             if (line.indentLevel <= conditionLine.indentLevel && !line.content.isEmpty()) {
                 break;
             }
-            
-            // Only process level 2 lines (actions inside condition)
-            if (line.indentLevel == 2 && !line.content.isEmpty()) {
+            if (line.indentLevel == conditionLine.indentLevel + 1 && !line.content.isEmpty()) {
                 Action action = parseAction(line, filename);
-                if (action != null) {
-                    block.addAction(action);
-                }
+                if (action != null) block.addAction(action);
             }
-            
             i++;
         }
-        
-        return block;
+
+        // else branch
+        if (i < lines.size()) {
+            IndentedLine next = lines.get(i);
+            String lc = next.content.toLowerCase().trim();
+            if (lc.equals("jika tidak:") || lc.equals("jika tidak")) {
+                i++;
+                while (i < lines.size()) {
+                    IndentedLine line = lines.get(i);
+                    if (line.indentLevel <= conditionLine.indentLevel && !line.content.isEmpty()) {
+                        break;
+                    }
+                    if (line.indentLevel == conditionLine.indentLevel + 1 && !line.content.isEmpty()) {
+                        Action action = parseAction(line, filename);
+                        if (action != null) block.addElseAction(action);
+                    }
+                    i++;
+                }
+            }
+        }
+
+        return new ConditionalParseResult(block, i);
     }
     
     /**
@@ -228,55 +254,55 @@ public class ScriptParser {
     private CustomCommand parseCustomCommand(List<IndentedLine> lines, int startIndex, String filename) {
         IndentedLine commandLine = lines.get(startIndex);
         String commandName = extractCommandName(commandLine.content);
-        
         if (commandName == null) return null;
-        
-        CustomCommand command = new CustomCommand(commandName, commandLine.lineNumber);
+
+        List<String> argsDefs = extractCommandArguments(commandLine.content);
         String permission = null;
-        
-        // Parse command properties and actions
-        int i = startIndex + 1;
+        List<Action> actions = new ArrayList<>();
         boolean inActionBlock = false;
-        
+
+        int i = startIndex + 1;
         while (i < lines.size()) {
             IndentedLine line = lines.get(i);
-            
-            // Stop if we hit another top-level block
+
             if (line.indentLevel == 0 && !line.content.isEmpty()) {
                 break;
             }
-            
+
             if (line.content.isEmpty()) {
                 i++;
                 continue;
             }
-            
-            // Level 1: Properties or "aksi:" marker
+
             if (line.indentLevel == 1) {
-                if (line.content.toLowerCase().startsWith("izin:")) {
+                String lc = line.content.toLowerCase();
+                if (lc.startsWith("izin:")) {
                     permission = extractQuotedString(line.content);
-                } else if (line.content.toLowerCase().equals("aksi:")) {
+                } else if (lc.equals("aksi:")) {
                     inActionBlock = true;
                 }
                 i++;
-            }
-            // Level 2: Actions inside aksi: block
-            else if (line.indentLevel == 2 && inActionBlock) {
+            } else if (line.indentLevel == 2 && inActionBlock) {
                 Action action = parseAction(line, filename);
                 if (action != null) {
-                    command.addAction(action);
+                    actions.add(action);
                 }
                 i++;
             } else {
                 i++;
             }
         }
-        
-        // Set permission if found
+
+        CustomCommand command;
         if (permission != null) {
-            return new CustomCommand(commandName, permission, "Custom command", commandLine.lineNumber);
+            command = new CustomCommand(commandName, argsDefs, permission, "Custom command", commandLine.lineNumber);
+        } else {
+            command = new CustomCommand(commandName, argsDefs, commandLine.lineNumber);
         }
-        
+        for (Action a : actions) {
+            command.addAction(a);
+        }
+
         return command;
     }
     
@@ -354,6 +380,28 @@ public class ScriptParser {
             return new Condition.PlayerSneakingCondition(line.lineNumber);
         }
         
+        // variable comparisons added in Phase 3
+        if (conditionText.contains("{") && conditionText.contains("kurang dari")) {
+            String var = extractVariableName(line.content);
+            String num = extractNumber(conditionText);
+            try {
+                double thresh = Double.parseDouble(num);
+                return new Condition.VariableLessThanCondition(var, thresh, line.lineNumber);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (conditionText.contains("{") && conditionText.contains("lebih dari")) {
+            String var = extractVariableName(line.content);
+            String num = extractNumber(conditionText);
+            try {
+                double thresh = Double.parseDouble(num);
+                return new Condition.VariableGreaterThanCondition(var, thresh, line.lineNumber);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (conditionText.contains("{") && conditionText.contains("adalah") && !strings.isEmpty()) {
+            String var = extractVariableName(line.content);
+            return new Condition.VariableEqualsCondition(var, strings.get(0), line.lineNumber);
+        }
+        
         plugin.getLogger().warning(filename + " line " + line.lineNumber + 
                                  ": Unknown condition: " + line.content);
         return null;
@@ -394,7 +442,23 @@ public class ScriptParser {
             return new Action(Action.ActionType.FEED_PLAYER, "", line.lineNumber);
         }
         
-        // Parse variable operations
+        // new "setel" syntax (Phase 3)
+        if (command.startsWith("setel")) {
+            String varName = extractVariableName(actionLine);
+            String value = "";
+            int eq = actionLine.indexOf('=');
+            if (eq != -1) {
+                value = actionLine.substring(eq + 1).trim();
+                if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
+                    value = value.substring(1, value.length() - 1);
+                }
+            } else if (!strings.isEmpty()) {
+                value = strings.get(0);
+            }
+            return new Action(Action.ActionType.SET_VARIABLE, varName, new String[]{value}, line.lineNumber);
+        }
+
+        // Parse variable operations (legacy syntax)
         if (command.startsWith("atur variabel") || command.startsWith("set variabel")) {
             String varName = extractVariableName(actionLine);
             String value = strings.isEmpty() ? "" : strings.get(0);
@@ -431,11 +495,13 @@ public class ScriptParser {
     }
     
     private boolean isCommandDeclaration(String line) {
-        return line.toLowerCase().startsWith("perintah /");
+        // Allow command declarations with or without leading slash and with arguments
+        return line.toLowerCase().startsWith("perintah ");
     }
     
     private boolean isCondition(String line) {
-        return line.toLowerCase().startsWith("jika ");
+        String lower = line.toLowerCase().trim();
+        return lower.startsWith("jika ") && !lower.startsWith("jika tidak");
     }
     
     private int findNextBlockStart(List<IndentedLine> lines, int currentIndex) {
@@ -448,26 +514,33 @@ public class ScriptParser {
         return lines.size();
     }
     
-    private int findNextSameLevelLine(List<IndentedLine> lines, int currentIndex) {
-        int level = lines.get(currentIndex).indentLevel;
-        for (int i = currentIndex + 1; i < lines.size(); i++) {
-            IndentedLine line = lines.get(i);
-            if (line.indentLevel <= level && !line.content.isEmpty()) {
-                return i;
-            }
-        }
-        return lines.size();
-    }
-    
+    /**
+     * Extracts the base command name from a declaration line.
+     *
+     * Examples:
+     *   "perintah /foo:"               -> "foo"
+     *   "perintah foo bar baz:"        -> "foo"
+     *   "perintah /say <text> [player]:" -> "say"
+     */
     private String extractCommandName(String line) {
-        if (line.toLowerCase().startsWith("perintah ")) {
-            String name = line.substring(9).trim();
-            if (name.endsWith(":")) {
-                name = name.substring(0, name.length() - 1);
-            }
-            return name;
+        if (!line.toLowerCase().startsWith("perintah ")) {
+            return null;
         }
-        return null;
+        // remove leading keyword and trailing colon
+        String remainder = line.substring(8).trim(); // after "perintah"
+        if (remainder.endsWith(":")) {
+            remainder = remainder.substring(0, remainder.length() - 1).trim();
+        }
+        if (remainder.isEmpty()) {
+            return null;
+        }
+        // first token is the command; strip leading slash if present
+        String[] parts = remainder.split("\\s+");
+        String name = parts[0];
+        if (name.startsWith("/")) {
+            name = name.substring(1);
+        }
+        return name.toLowerCase();
     }
     
     private String extractQuotedString(String line) {
@@ -482,6 +555,31 @@ public class ScriptParser {
             return line.substring(start + 1, end);
         }
         return "";
+    }
+
+    /**
+     * Extracts argument definitions from a command line.
+     * Everything after the base command name and before the colon is
+     * considered an argument token.
+     *
+     * Example:
+     *   "perintah /foo <text> [player]:" -> ["<text>", "[player]"]
+     */
+    private List<String> extractCommandArguments(String line) {
+        List<String> args = new ArrayList<>();
+        if (!line.toLowerCase().startsWith("perintah ")) {
+            return args;
+        }
+        String remainder = line.substring(8).trim();
+        if (remainder.endsWith(":")) {
+            remainder = remainder.substring(0, remainder.length() - 1).trim();
+        }
+        String[] parts = remainder.split("\\s+");
+        // first part is command name, skip it
+        for (int i = 1; i < parts.length; i++) {
+            args.add(parts[i]);
+        }
+        return args;
     }
     
     private String extractNumber(String text) {

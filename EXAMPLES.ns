@@ -68,6 +68,13 @@
 #         kirim "&e♨ Lapar telah dipulihkan!" ke pemain
 
 # ==========================================
+# CONTOH 5b: Command dengan Argumen
+# ==========================================
+# Menunjukkan bagaimana menggunakan placeholder argumen
+# perintah /hello <name>:
+#     kirim "Halo, %arg1%!" ke pemain
+
+# ==========================================
 # CONTOH 6: Mining Statistics Tracker
 # ==========================================
 # Melacak statistik mining pemain

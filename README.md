@@ -70,12 +70,29 @@ NusantaraScript is a revolutionary Minecraft plugin that allows server administr
 
 ### Custom Commands
 
+You can declare commands in your scripts just like Skript does. The **first token** after `perintah` is the command name; you may include a leading slash and define arguments afterwards. Arguments are **just for documentation** and the plugin will register the base command correctly.
+
 ```
-perintah /commandname:
-    izin: "permission.node"
+perintah /commandname [<arg1>] [<arg2>]:
+    izin: "permission.node"      # optional permission check
     aksi:
         [actions here]
 ```
+
+Once the command is registered your actions can refer to the arguments using placeholders:
+
+- `%args%` – entire argument string
+- `%arg%` or `%arg1%` – first argument
+- `%arg2%`, `%arg3%`, … – subsequent arguments
+- `%arg-1%`, `%arg-2%`, … – alternate index style (Skript compatibility)
+
+Example:
+```
+perintah /sayhello <player>:
+    kirim "Halo, %arg1%!" ke pemain
+```
+
+The parser automatically strips the leading slash and ignores the argument tokens when registering the command, so `/sayhello` will be available in-game regardless of how many placeholders you list.
 
 ### Placeholders
 

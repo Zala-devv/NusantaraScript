@@ -61,8 +61,7 @@ public class CustomCommandRegistry {
         }
         
         String commandName = customCommand.getName().toLowerCase();
-        
-        // Remove leading slash if present
+        // Remove leading slash if present (parser should already strip it, but just in case)
         if (commandName.startsWith("/")) {
             commandName = commandName.substring(1);
         }
@@ -73,10 +72,20 @@ public class CustomCommandRegistry {
             public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
                 return executeCustomCommand(customCommand, sender, args);
             }
+
+            @Override
+            public List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+                // no dynamic suggestions for now, could be extended using argument definitions
+                return Collections.emptyList();
+            }
         };
         
-        // Set command properties
-        command.setDescription(customCommand.getDescription());
+        // Set command properties (include args in description for help)
+        String desc = customCommand.getDescription();
+        if (!customCommand.getArguments().isEmpty()) {
+            desc += " (" + String.join(" ", customCommand.getArguments()) + ")";
+        }
+        command.setDescription(desc);
         if (customCommand.getPermission() != null) {
             command.setPermission(customCommand.getPermission());
         }
@@ -85,7 +94,8 @@ public class CustomCommandRegistry {
         commandMap.register("nusantarascript", command);
         registeredCommands.put(commandName, customCommand);
         
-        plugin.getLogger().info("Registered custom command: /" + commandName);
+        plugin.getLogger().info("Registered custom command: /" + commandName +
+                               (customCommand.getArguments().isEmpty() ? "" : " arguments=" + customCommand.getArguments()));
     }
     
     /**

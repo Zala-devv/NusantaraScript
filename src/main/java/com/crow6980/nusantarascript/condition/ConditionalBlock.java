@@ -23,16 +23,22 @@ public class ConditionalBlock {
     
     private final Condition condition;
     private final List<Action> actions;
+    private final List<Action> elseActions; // phase3
     private final int lineNumber;
     
     public ConditionalBlock(Condition condition, int lineNumber) {
         this.condition = condition;
         this.actions = new ArrayList<>();
+        this.elseActions = new ArrayList<>();
         this.lineNumber = lineNumber;
     }
     
     public void addAction(Action action) {
         actions.add(action);
+    }
+    
+    public void addElseAction(Action action) {
+        elseActions.add(action);
     }
     
     public Condition getCondition() {
@@ -41,6 +47,10 @@ public class ConditionalBlock {
     
     public List<Action> getActions() {
         return new ArrayList<>(actions);
+    }
+    
+    public List<Action> getElseActions() {
+        return new ArrayList<>(elseActions);
     }
     
     public int getLineNumber() {

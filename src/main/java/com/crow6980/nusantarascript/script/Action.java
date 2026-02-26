@@ -17,7 +17,7 @@ public class Action {
         CANCEL_EVENT,       // batalkan event
         HEAL_PLAYER,        // pulihkan pemain
         FEED_PLAYER,        // beri makan pemain
-        SET_VARIABLE,       // atur variabel {name} menjadi "value"
+        SET_VARIABLE,       // atur variabel {name} menjadi "value" (juga mendukung syntax "setel {name} = value")
         ADD_VARIABLE,       // tambah NUMBER ke variabel {name}
         SUBTRACT_VARIABLE,  // kurangi NUMBER dari variabel {name}
         DELETE_VARIABLE,    // hapus variabel {name}

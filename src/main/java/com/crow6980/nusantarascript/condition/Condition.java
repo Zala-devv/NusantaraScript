@@ -5,6 +5,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.crow6980.nusantarascript.manager.VariableManager;
+
 import java.util.Map;
 
 /**
@@ -49,6 +51,25 @@ public abstract class Condition {
     protected Block getBlock(Map<String, Object> context) {
         Object obj = context.get("block");
         return obj instanceof Block ? (Block) obj : null;
+    }
+
+    /**
+     * Retrieve variable value using the injected VariableManager.
+     * Supports player-specific variables using %player% token.
+     */
+    protected Object getVariable(Map<String, Object> context, String variableName) {
+        Object vmObj = context.get("variableManager");
+        if (!(vmObj instanceof VariableManager)) return null;
+        VariableManager vm = (VariableManager) vmObj;
+
+        if (variableName.contains("%player%")) {
+            Player player = getPlayer(context);
+            if (player == null) return null;
+            String actual = variableName.replace(".%player%", "").replace("%player%.", "");
+            return vm.getPlayer(player.getName(), actual);
+        } else {
+            return vm.getGlobal(variableName);
+        }
     }
     
     /**
@@ -131,8 +152,59 @@ public abstract class Condition {
     }
     
     /**
-     * Condition: jika variabel {name} adalah "value"
-     * Checks if a variable equals a specific value
+     * Condition: jika variabel {name} kurang dari NUMBER
+     */
+    public static class VariableLessThanCondition extends Condition {
+        private final String variableName;
+        private final double threshold;
+        
+        public VariableLessThanCondition(String variableName, double threshold, int lineNumber) {
+            super(lineNumber);
+            this.variableName = variableName;
+            this.threshold = threshold;
+        }
+        
+        @Override
+        public boolean evaluate(Map<String, Object> context) {
+            Object val = getVariable(context, variableName);
+            if (val == null) return false;
+            try {
+                double current = Double.parseDouble(val.toString());
+                return current < threshold;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Condition: jika variabel {name} lebih dari NUMBER
+     */
+    public static class VariableGreaterThanCondition extends Condition {
+        private final String variableName;
+        private final double threshold;
+        
+        public VariableGreaterThanCondition(String variableName, double threshold, int lineNumber) {
+            super(lineNumber);
+            this.variableName = variableName;
+            this.threshold = threshold;
+        }
+        
+        @Override
+        public boolean evaluate(Map<String, Object> context) {
+            Object val = getVariable(context, variableName);
+            if (val == null) return false;
+            try {
+                double current = Double.parseDouble(val.toString());
+                return current > threshold;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Condition: jika variabel {name} sama dengan "value"
      */
     public static class VariableEqualsCondition extends Condition {
         private final String variableName;
@@ -146,12 +218,12 @@ public abstract class Condition {
         
         @Override
         public boolean evaluate(Map<String, Object> context) {
-            Object varValue = context.get("var_" + variableName);
-            if (varValue == null) return false;
-            return varValue.toString().equalsIgnoreCase(expectedValue);
+            Object val = getVariable(context, variableName);
+            if (val == null) return false;
+            return val.toString().equalsIgnoreCase(expectedValue);
         }
     }
-    
+
     /**
      * Condition: jika pemain sedang terbang
      * Checks if the player is flying
