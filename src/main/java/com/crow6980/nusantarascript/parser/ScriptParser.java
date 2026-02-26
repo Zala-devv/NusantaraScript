@@ -33,7 +33,7 @@ import java.util.List;
  * 
  * @author crow6980
  */
-public class EnhancedScriptParser {
+public class ScriptParser {
     
     private final NusantaraScript plugin;
     private final ScriptLexer lexer;
@@ -41,7 +41,7 @@ public class EnhancedScriptParser {
     // Indentation constants
     private static final int INDENT_SIZE = 4; // 4 spaces per indent level
     
-    public EnhancedScriptParser(NusantaraScript plugin) {
+    public ScriptParser(NusantaraScript plugin) {
         this.plugin = plugin;
         this.lexer = new ScriptLexer();
     }
