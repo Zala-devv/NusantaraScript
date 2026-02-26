@@ -4,13 +4,6 @@ import com.crow6980.nusantarascript.NusantaraScript;
 import com.crow6980.nusantarascript.execution.EnhancedScriptExecutor;
 import com.crow6980.nusantarascript.script.EventHandler;
 import com.crow6980.nusantarascript.script.Script;
-// Import the specific classes instead of the whole package if the star wildcard fails
-import com.crow6980.nusantarascript.listeners.PlayerJoinListener; 
-// Add others here as you create them:
-import com.crow6980.nusantarascript.listeners.PlayerQuitListener; // Ensure your specific listeners are in this package
-import com.crow6980.nusantarascript.listeners.BlockBreakListener;
-import com.crow6980.nusantarascript.listeners.PlayerChatListener;
-
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 
@@ -18,16 +11,16 @@ import java.util.*;
 
 /**
  * STEP 4: Dynamic Event Registry
- * * Manages dynamic registration of Bukkit event listeners.
- * It only registers listeners for events that are actually found in loaded .ns scripts.
- * * @author crow6980
+ * Manages the mapping of .ns script logic to Minecraft events.
+ * * NOTE: Standard events are now handled by ScriptEventListener.
+ * This class primarily manages the storage of script handlers.
  */
 public class EventRegistry {
     
     private final NusantaraScript plugin;
     private final EnhancedScriptExecutor executor;
     
-    // Maps event types to their active Bukkit Listener objects
+    // Maps event types to their active Bukkit Listener objects (for dynamic/non-standard events)
     private final Map<EventHandler.EventType, Listener> registeredListeners;
     
     // Maps event types to the list of script handlers that need to run
@@ -40,17 +33,12 @@ public class EventRegistry {
         this.eventHandlers = new HashMap<>();
     }
     
-    /**
-     * Clears all registered event handlers and removes listeners from Bukkit
-     */
     public void clear() {
         unregisterAll();
     }
     
     /**
      * Registers all events used by a script.
-     * If an event type is new, it injects a new Bukkit listener.
-     * * @param script The script object containing event handlers
      */
     public void registerScript(Script script) {
         for (EventHandler handler : script.getEventHandlers()) {
@@ -59,34 +47,25 @@ public class EventRegistry {
             // Link the handler logic to the event type
             eventHandlers.computeIfAbsent(eventType, k -> new ArrayList<>()).add(handler);
             
-            // Only register a new Bukkit Listener if we aren't already listening for this event
-            if (!registeredListeners.containsKey(eventType)) {
-                registerBukkitListener(eventType);
-            }
+            // WE DO NOT call registerBukkitListener(eventType) here for 
+            // JOIN, QUIT, CHAT, or BREAK because ScriptEventListener handles them.
+            // Only use this for custom or extra dynamic events in the future.
         }
     }
     
     /**
      * Dynamically creates and registers specific Bukkit listeners
+     * COMMENTED OUT: Most of these are now handled by ScriptEventListener
      */
+    /*
     private void registerBukkitListener(EventHandler.EventType eventType) {
         Listener listener = null;
         
         switch (eventType) {
-            case PLAYER_JOIN:
-                listener = new PlayerJoinListener(this, executor);
-                break;
-            case PLAYER_QUIT:
-                listener = new PlayerQuitListener(this, executor);
-                break;
-            case BLOCK_BREAK:
-                listener = new BlockBreakListener(this, executor);
-                break;
-            case PLAYER_CHAT:
-                listener = new PlayerChatListener(this, executor);
-                break;
-            // Note: PLAYER_DEATH, DAMAGE, etc., are usually handled by a 
-            // general ScriptEventListener for better performance on high-frequency events.
+            // These are now handled in ScriptEventListener.java to avoid double-execution
+            // case PLAYER_JOIN:
+            //     listener = new PlayerJoinListener(this, executor);
+            //     break;
             default:
                 break;
         }
@@ -94,20 +73,21 @@ public class EventRegistry {
         if (listener != null) {
             plugin.getServer().getPluginManager().registerEvents(listener, plugin);
             registeredListeners.put(eventType, listener);
-            plugin.getLogger().info("Successfully registered: " + eventType);
+            plugin.getLogger().info("Successfully registered dynamic listener: " + eventType);
         }
     }
+    */
     
     /**
-     * Returns the list of script handlers for a fired event
+     * Returns the list of script handlers for a fired event.
+     * This is called by ScriptEventListener to find which scripts to run.
      */
     public List<EventHandler> getHandlers(EventHandler.EventType eventType) {
         return eventHandlers.getOrDefault(eventType, Collections.emptyList());
     }
     
     /**
-     * Completely unregisters all listeners from the Bukkit event system.
-     * Vital for reloads to prevent "Ghost Events" from old script versions.
+     * Completely unregisters all listeners and clears handlers.
      */
     public void unregisterAll() {
         for (Listener listener : registeredListeners.values()) {
@@ -117,7 +97,7 @@ public class EventRegistry {
         registeredListeners.clear();
         eventHandlers.clear();
         
-        plugin.getLogger().info("Unregistered all dynamic script listeners.");
+        plugin.getLogger().info("Cleared all script event handlers.");
     }
     
     /**

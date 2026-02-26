@@ -33,8 +33,8 @@ public class NusantaraScript extends JavaPlugin {
         initializeManagers();
         
         // 3. Register Global Listeners
-        getServer().getPluginManager().registerEvents(
-            new ScriptEventListener(this, scriptExecutor), this);
+        // Main class onEnable
+        getServer().getPluginManager().registerEvents(new ScriptEventListener(this, scriptExecutor), this);
         
         // 4. Register Commands
         getCommand("nusantara").setExecutor(new NusantaraCommand(this, scriptManager));
