@@ -11,8 +11,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -115,6 +113,18 @@ public class EnhancedScriptExecutor {
             case KICK_PLAYER:
                 executeKickPlayer(action, context);
                 break;
+                
+            case TELEPORT:
+                executeTeleport(action, context);
+                break;
+                
+            case PLAY_SOUND:
+                executePlaySound(action, context);
+                break;
+                
+            case GIVE_EFFECT:
+                executeGiveEffect(action, context);
+                break;
         }
     }
     
@@ -130,7 +140,7 @@ public class EnhancedScriptExecutor {
     
     private void executeBroadcast(Action action, Map<String, Object> context) {
         String message = replacePlaceholders(action.getParameter(), context);
-        Bukkit.broadcastMessage(message);
+        Bukkit.getServer().broadcastMessage(message);
     }
     
     private void executeCancelEvent(Action action, Map<String, Object> context) {
@@ -144,7 +154,7 @@ public class EnhancedScriptExecutor {
         Player player = (Player) context.get("player");
         if (player == null) return;
         
-        player.setHealth(player.getMaxHealth());
+        player.setHealth(20.0);
         player.setFoodLevel(20);
         player.setSaturation(20f);
     }
@@ -285,6 +295,30 @@ public class EnhancedScriptExecutor {
         
         String reason = replacePlaceholders(action.getParameter(), context);
         player.kickPlayer(reason);
+    }
+    
+    private void executeTeleport(Action action, Map<String, Object> context) {
+        Player player = (Player) context.get("player");
+        if (player == null) return;
+        
+        // Implementation for teleport action
+        plugin.getLogger().info("Teleport action not yet implemented");
+    }
+    
+    private void executePlaySound(Action action, Map<String, Object> context) {
+        Player player = (Player) context.get("player");
+        if (player == null) return;
+        
+        // Implementation for play sound action
+        plugin.getLogger().info("Play sound action not yet implemented");
+    }
+    
+    private void executeGiveEffect(Action action, Map<String, Object> context) {
+        Player player = (Player) context.get("player");
+        if (player == null) return;
+        
+        // Implementation for give effect action
+        plugin.getLogger().info("Give effect action not yet implemented");
     }
     
     // ==================== PLACEHOLDER REPLACEMENT ====================

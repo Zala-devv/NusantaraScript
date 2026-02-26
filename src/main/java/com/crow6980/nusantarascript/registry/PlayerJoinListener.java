@@ -18,7 +18,7 @@ public class PlayerJoinListener implements Listener {
     
     private final EventRegistry registry;
     private final EnhancedScriptExecutor executor;
-    private com.crow6980.nusantarascript.script.EventHandler scriptHandler;
+    
     public PlayerJoinListener(EventRegistry registry, EnhancedScriptExecutor executor) {
         this.registry = registry;
         this.executor = executor;

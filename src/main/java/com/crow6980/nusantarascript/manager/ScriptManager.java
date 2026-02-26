@@ -3,14 +3,14 @@ package com.crow6980.nusantarascript.manager;
 import com.crow6980.nusantarascript.NusantaraScript;
 import com.crow6980.nusantarascript.command.CustomCommand;
 import com.crow6980.nusantarascript.command.CustomCommandRegistry;
-import com.crow6980.nusantarascript.parser.EnhancedScriptParser;
+import com.crow6980.nusantarascript.parser.ScriptParser;
 import com.crow6980.nusantarascript.registry.EventRegistry;
 import com.crow6980.nusantarascript.script.Script;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class ScriptManager {
     private final File scriptsFolder;
     private final EventRegistry eventRegistry;
     private final CustomCommandRegistry customCommandRegistry;
-    private final EnhancedScriptParser parser;
+    private final ScriptParser parser;
     
     // Map to store loaded scripts: filename -> Script object
     private final Map<String, Script> loadedScripts;
@@ -42,7 +42,7 @@ public class ScriptManager {
         this.scriptsFolder = scriptsFolder;
         this.eventRegistry = eventRegistry;
         this.customCommandRegistry = customCommandRegistry;
-        this.parser = new EnhancedScriptParser(plugin);
+        this.parser = new ScriptParser(plugin);
         this.loadedScripts = new HashMap<>();
     }
     

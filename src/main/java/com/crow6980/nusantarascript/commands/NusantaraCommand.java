@@ -97,8 +97,8 @@ public class NusantaraCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e§l=== NusantaraScript ===");
         sender.sendMessage("§7Plugin scripting untuk Minecraft dalam Bahasa Indonesia");
         sender.sendMessage("");
-        sender.sendMessage("§eVersi: §f" + plugin.getDescription().getVersion());
-        sender.sendMessage("§eAuthor: §f" + plugin.getDescription().getAuthors().get(0));
+        sender.sendMessage("§eVersi: §f" + plugin.getPluginMeta().getVersion());
+        sender.sendMessage("§eAuthor: §f" + plugin.getPluginMeta().getAuthors().get(0));
         sender.sendMessage("§eSkript Dimuat: §f" + scriptManager.getLoadedScriptCount());
         
         // Show event statistics

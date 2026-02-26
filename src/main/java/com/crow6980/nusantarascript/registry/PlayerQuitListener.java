@@ -18,7 +18,7 @@ public class PlayerQuitListener implements Listener {
     
     private final EventRegistry registry;
     private final EnhancedScriptExecutor executor;
-    private com.crow6980.nusantarascript.script.EventHandler scriptHandler;
+    
     public PlayerQuitListener(EventRegistry registry, EnhancedScriptExecutor executor) {
         this.registry = registry;
         this.executor = executor;
